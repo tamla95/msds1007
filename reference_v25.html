@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MSDS·유해물질 관리 전체 샘플</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+body{font-family:Arial,sans-serif;margin:0;background:#f5f6f8;color:#222}
+header{background:#153f6d;color:white;padding:18px 24px}
+main{max-width:1100px;margin:20px auto;padding:0 16px}
+section{background:white;border:1px solid #ddd;border-radius:10px;padding:18px;margin-bottom:16px}
+h1,h2,h3{margin-top:0}
+.stepper{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0}
+.step{padding:12px;background:#e9ecef;border-radius:8px;text-align:center;font-weight:bold}
+.step.active{background:#153f6d;color:white}
+.step.done{background:#dff2e3;color:#226b31}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.tabs button{width:auto}
+.card{border:1px solid #ddd;border-radius:8px;padding:14px;margin-top:12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:760px){.grid,.stepper{grid-template-columns:1fr}}
+input,select,textarea,button{width:100%;box-sizing:border-box;padding:10px;margin-top:6px;border:1px solid #bbb;border-radius:6px}
+button{border:none;background:#153f6d;color:white;cursor:pointer}
+button.secondary{background:#666}
+button.success{background:#2d7a37}
+button.warn{background:#a86d00}
+.hidden{display:none}
+.status{padding:10px;border-radius:6px;background:#eef2f7;margin-top:10px}
+.badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:bold}
+.badge.ok{background:#dff2e3;color:#226b31}
+.badge.warn{background:#fff0c2;color:#815c00}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.actions button{width:auto}
+table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
+th,td{border:1px solid #ddd;padding:8px;text-align:left;vertical-align:top}
+th{background:#f0f2f4}
+.help{font-size:13px;color:#666}
+.ghs-wrap{display:flex;gap:14px;flex-wrap:wrap}
+.ghs{width:110px;text-align:center}
+.diamond{width:56px;height:56px;border:3px solid #d33;transform:rotate(45deg);margin:8px auto 14px;background:white;display:flex;align-items:center;justify-content:center}
+.diamond span{transform:rotate(-45deg);font-size:28px}
+#qrbox{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+#qrcode{padding:10px;background:white;border:1px solid #ddd}
+</style>
+</head>
+<body>
+<header>
+<h1>MSDS·유해물질 관리 전체 샘플</h1>
+<div>① 제품 확인 → ② 공식 MSDS 확인 → ③ 관리조치 → ④ 완료·이력관리</div>
+</header>
+
+<main>
+
+<section id="homeScreen">
+<h2>MSDS·유해물질 관리 시작</h2>
+<p class="help">학교 상황에 맞는 경로를 선택하세요.</p>
+
+<div class="grid">
+  <div class="card">
+    <h3>신규 화학제품 관리</h3>
+    <p>새로 반입·사용하는 제품을 사진으로 확인하고 공식 MSDS, 관리대장, 표지·교육까지 관리합니다.</p>
+    <button onclick="startNewProduct()">신규 제품 관리 시작</button>
+  </div>
+
+  <div class="card">
+    <h3>기존 MSDS 관리대장 참고</h3>
+    <p>현재 사용 중인 관리대장은 그대로 두고, 제품 검색·중복 확인·기존 정보 참고용으로 활용합니다.</p>
+    <button onclick="startExistingLedger()">기존 대장 참고하기</button>
+  </div>
+</div>
+</section>
+
+<section id="existingLedgerSection" class="hidden">
+<h2>기존 MSDS 관리대장 참고</h2>
+
+<div class="card">
+<h3>1. 기존 관리대장 불러오기</h3>
+<p>기존 대장을 수정하거나 다시 작성하지 않습니다. 제품명·제조사·사용부서·보관장소 등을 참고하고, 신규 등록 시 중복 여부를 확인하는 데 활용합니다.</p>
+<div class="grid">
+  <div>
+    <label>기존 관리대장 파일</label>
+    <input type="file" id="legacyLedgerFile" accept=".csv,.xlsx,.xls">
+  </div>
+  <div>
+    <label>검색</label>
+    <input type="text" id="legacySearch" placeholder="제품명, 제조사, 사용부서, 보관장소 검색" oninput="filterLegacyReference()">
+  </div>
+</div>
+<div class="actions">
+  <button onclick="loadLegacyReference()">기존 대장 불러오기 / 샘플 보기</button>
+  <button class="secondary" onclick="backHome()">처음으로</button>
+</div>
+<div class="help">※ 기존 대장은 참고용으로만 사용하며 원본 파일은 수정하지 않습니다. 파일을 선택하지 않고 버튼을 누르면 샘플 대장으로 기능을 확인할 수 있습니다.</div>
+</div>
+
+<div id="legacyReferenceBox" class="card hidden">
+<h3>2. 기존 제품 목록</h3>
+<div class="card" style="background:#fafafa">
+<h4>현재 취급상태 필터</h4>
+<div class="actions">
+<button onclick="filterByStatus('전체')">전체</button>
+<button class="secondary" onclick="filterByStatus('사용 중')">사용 중</button>
+<button class="secondary" onclick="filterByStatus('폐기/중단')">폐기/중단</button>
+<button class="secondary" onclick="filterByStatus('대체 완료')">대체 완료</button>
+<button class="secondary" onclick="filterByStatus('확인 필요')">확인 필요</button>
+</div>
+<div class="help">※ 기존 관리대장 원본은 수정하지 않고, 웹앱에서 현재 취급상태만 별도로 관리합니다. <b>사용 중·확인 필요</b> 제품만 신규 관리할 수 있으며, <b>폐기/중단·대체 완료</b> 제품은 신규 관리 대상에서 제외합니다.</div>
+</div>
+<div class="status"><b>활용방법:</b> 기존 제품 정보는 표에서 바로 확인하고, 계속 관리가 필요한 제품만 <b>신규 관리</b>를 선택하세요.</div>
+<div class="card" style="background:#fafafa">
+<h4>신규 관리가 필요한 경우</h4>
+<p><b>최신 MSDS 개정본이 확인되었거나</b>, 기존 제품을 새 시스템에서 경고표지·QR·교육·이력관리까지 이어서 관리하려는 경우 선택합니다.</p>
+</div>
+<table id="legacyReferenceTable">
+<thead>
+<tr>
+<th>번호</th>
+<th>제품명</th>
+<th>제조사</th>
+<th>주요성분/CAS No.</th>
+<th>현재 MSDS</th>
+<th>개정이력</th>
+<th>사용부서</th>
+<th>보관장소</th>
+<th>현재 상태</th>
+<th>관리</th>
+</tr>
+</thead>
+<tbody id="legacyReferenceBody"></tbody>
+</table>
+<div id="legacyReferenceCount" class="help" style="margin-top:10px"></div>
+
+<div id="revisionDetailPanel" class="card hidden" style="background:#fafafa">
+<h4>MSDS 개정내용</h4>
+<table>
+<tr><th>제품명</th><td id="revProduct">-</td></tr>
+<tr><th>현재 관리 중인 MSDS</th><td id="revCurrent">-</td></tr>
+<tr><th>확인된 개정일</th><td id="revDate">-</td></tr>
+<tr><th>상태</th><td id="revStatus">-</td></tr>
+<tr><th>주요 확인사항</th><td id="revSummary">-</td></tr>
+</table>
+<p class="help">※ 실제 서비스에서는 제조사·수입자·공급업체의 최신 공식 MSDS와 기존 보관본을 비교하여 주요 변경사항을 표시합니다.</p>
+<div class="actions">
+<button class="secondary" onclick="document.getElementById('revisionDetailPanel').classList.add('hidden')">닫기</button>
+</div>
+</div>
+
+</div>
+</section>
+
+
+<section id="workflowHeader" class="hidden">
+<h2>전체 업무 흐름</h2>
+<div class="stepper">
+<div class="step active" id="sp1" onclick="showStage(1)" style="cursor:pointer">① 제품 확인</div>
+<div class="step" id="sp2" onclick="showStage(2)" style="cursor:pointer">② 공식 MSDS 확인</div>
+<div class="step" id="sp3" onclick="showStage(3)" style="cursor:pointer">③ 관리조치</div>
+<div class="step" id="sp4" onclick="showStage(4)" style="cursor:pointer">④ 완료·이력</div>
+</div>
+<div id="currentStatus" class="status"><b>현재 상태:</b> 확인 필요 / <b>다음 할 일:</b> 제품 사진을 등록하세요.</div>
+</section>
+
+<section id="stage1" class="hidden">
+<h2>① 제품 확인</h2>
+<div class="grid">
+<div><label>앞면 사진</label><input type="file" accept="image/*" capture="environment"></div>
+<div><label>뒷면/라벨 사진</label><input type="file" accept="image/*" capture="environment"></div>
+</div>
+<div class="actions">
+<button onclick="recognize()">AI로 제품 확인</button>
+<button class="secondary" onclick="backHome()">처음으로</button>
+</div>
+
+<div id="productResult" class="card hidden">
+<h3>AI 식별 결과</h3>
+<table>
+<tr><th>제품명</th><td>3M #77 스프레이 접착제</td></tr>
+<tr><th>제조사</th><td>한국쓰리엠</td></tr>
+<tr><th>용도</th><td>스프레이형 접착제</td></tr>
+<tr><th>품번/라벨</th><td>77 / 인화성 에어로졸 / 환기 필요</td></tr>
+<tr><th>생활화학제품 여부</th>
+<td>
+<span id="lifeProductBadge" class="badge warn">확인 중</span>
+<button id="lifeProductLink" class="secondary hidden" style="width:auto;margin-left:8px;padding:6px 10px" onclick="openLifeSafety()">안전관리 보기</button>
+</td></tr>
+</table>
+<div class="card" style="background:#fafafa">
+<h4>생활화학제품 안내</h4>
+<p>세정제·제거제 등 일상생활 공간에서 사용하는 일부 화학제품은 <b>화학제품안전법</b>에 따라 신고·표시 관리됩니다.</p>
+<p>시스템이 공식 정보를 자동 확인해 <b>생활화학제품으로 확인되면 MSDS 관리 대신 생활화학제품 안전관리 화면으로 이동</b>합니다.</p>
+</div>
+<div class="help">※ AI가 제품명·제조사·신고번호를 읽은 뒤 공식 생활화학제품 정보와 자동으로 대조합니다. 사용자가 별도로 확인할 필요는 없습니다.</div>
+<div class="actions">
+<button class="secondary" onclick="demoLifeProduct()">생활화학제품 확인 예시</button>
+</div>
+<div id="duplicateCheckBox" class="card hidden" style="background:#fff8e6">
+<h4>기존 관리대장 확인</h4>
+<div class="help">현재 등록하려는 제품이 기존 관리대장에 있는지 확인합니다.</div>
+<div id="duplicateCheckText" style="margin-top:8px">기존 관리대장에서 동일·유사 제품을 확인합니다.</div>
+</div>
+<div class="actions">
+<button id="nextMsdsBtn" class="hidden" onclick="showStage(2)">다음: 공식 MSDS 확인</button>
+</div>
+</div>
+
+<div id="lifeBox" class="card hidden">
+<h3>생활화학제품 안전관리</h3>
+<span class="badge ok">생활화학제품으로 확인</span>
+<p><b>MSDS 관리 대신 안전취급요령을 제공합니다.</b></p>
+<ul>
+<li>환기하면서 사용</li>
+<li>다른 제품과 임의 혼합 금지</li>
+<li>피부·눈 접촉 주의</li>
+<li>어린이 접근 방지</li>
+<li>직사광선·고온 피해서 보관</li>
+</ul>
+<div class="actions">
+<button onclick="alert('취급요령 다운로드 샘플')">취급요령 다운로드</button>
+</div>
+</div></div>
+</section>
+
+<section id="stage2" class="hidden">
+<h2>② 공식 MSDS 확인</h2>
+
+<div class="card">
+<h3>공식 MSDS 검색 결과</h3>
+<table>
+<tr><th>제품명</th><td>3M #77 스프레이 접착제</td></tr>
+<tr><th>제조사</th><td>한국쓰리엠</td></tr>
+<tr><th>공식 문서</th><td>3M #77 스프레이 접착제 SDS</td></tr>
+<tr><th>개정일</th><td>2026-01-15 (샘플)</td></tr>
+<tr><th>주요 물질명</th><td>아세톤, 헥산류 등 (샘플)</td></tr>
+<tr><th>CAS No.</th><td>아세톤 67-64-1 등</td></tr>
+<tr><th>UN No.</th><td>UN 1950 (에어로졸, 샘플)</td></tr>
+<tr><th>상태</th><td><span class="badge ok">공식 MSDS 확인</span></td></tr>
+</table>
+<div class="actions">
+<button onclick="alert('MSDS 원문 보기 샘플')">MSDS 원문 보기</button>
+<button onclick="alert('MSDS PDF 다운로드 샘플')">MSDS PDF 다운로드</button>
+</div>
+
+<div class="card" style="background:#fafafa">
+<h3>추가 정보 확인</h3>
+<p>공식 MSDS가 확인된 경우 바로 관리조치로 진행할 수 있습니다. 필요할 때만 안전보건공단에서 주요 물질의 유해성·규제정보를 추가 확인합니다.</p>
+<div class="help">확인값: <b>물질명 아세톤 / CAS No. 67-64-1</b> · UN No.는 공식 MSDS 14번 운송정보 기준</div>
+<div class="actions">
+<button class="secondary" onclick="openKoshaWithKey()">안전보건공단 확인</button>
+</div>
+</div>
+</div>
+
+<div class="card">
+<h3>자료가 부족한 경우</h3>
+<ul>
+<li>제품명·제조사가 보이도록 재촬영</li>
+<li>품번·모델번호·바코드 확인</li>
+<li>제조사 공식 홈페이지 확인</li>
+<li>공급업체에 최신 MSDS 요청</li>
+<li>공단 미검색만으로 비대상 처리하지 않음</li>
+</ul>
+<textarea rows="3">○○ 제품을 사업장에서 사용 중입니다. 해당 제품의 최신 물질안전보건자료(MSDS) 제공을 요청드립니다.</textarea>
+<button class="secondary" onclick="alert('문의 문구 복사 샘플')">문의 문구 복사</button>
+</div>
+
+<div class="actions">
+<button onclick="showStage(3)">MSDS 분석 후 관리조치로 이동</button>
+<button class="secondary" onclick="showStage(1)">이전</button>
+</div>
+</section>
+
+<section id="stage3" class="hidden">
+<h2>③ 관리조치</h2>
+
+<div class="card">
+<h3>MSDS 핵심 분석</h3>
+<table>
+<tr><th>2번 유해성·위험성</th><td>인화성 / 증기 흡입 주의 / 경고표지 정보</td></tr>
+<tr><th>3번 구성성분·함유량</th><td>아세톤 67-64-1 등 (샘플)</td></tr>
+<tr><th>4번 응급조치</th><td>눈·피부 접촉 시 충분한 물로 세척</td></tr>
+<tr><th>5번 화재대응</th><td>화기·열원 차단, 적절한 소화방법 확인</td></tr>
+<tr><th>6번 누출대응</th><td>환기·접근통제·적절한 흡착/회수</td></tr>
+<tr><th>7번 취급·저장</th><td>충분한 환기, 고온·화기 피해서 보관</td></tr>
+<tr><th>8번 노출방지·보호구</th><td>보호장갑·보안경·필요 시 호흡보호구</td></tr>
+<tr><th>13번 폐기</th><td>잔량·용기 처리방법 확인, 임의 배출 금지</td></tr>
+<tr><th>15번 법적 규제현황</th><td>관련 규제정보 확인 및 필요 시 전문가 검토</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>1) 관리대장 반영</h3>
+<div class="grid">
+<div><label>사용부서</label><select id="deptSelect"><option>행정실/시설관리</option><option>급식실</option><option>과학실</option></select></div>
+<div><label>보관장소</label><select id="placeSelect"><option>시설관리실</option><option>청소용품실</option><option>과학실</option></select></div>
+</div>
+<button onclick="applyLedger()">관리대장 반영</button>
+<div id="ledgerResult" class="card hidden" style="background:#fafafa">
+<h4>유해물질 관리대장</h4>
+<table id="ledgerTable">
+<thead>
+<tr>
+<th>번호</th>
+<th>제품명</th>
+<th>제조사</th>
+<th>주요성분/CAS No.</th>
+<th>사용부서</th>
+<th>보관장소</th>
+<th>MSDS 상태</th>
+<th>관리상태</th>
+</tr>
+</thead>
+<tbody id="ledgerBody"></tbody>
+</table>
+<div class="actions">
+<button class="secondary" onclick="downloadLedgerCsv()">새 관리대장 CSV 다운로드</button>
+</div>
+</div>
+</div>
+
+<div class="card">
+<h3>2) 경고표지</h3>
+<div class="ghs-wrap">
+<div class="ghs"><div class="diamond"><span>🔥</span></div><b>인화성</b></div>
+<div class="ghs"><div class="diamond"><span>❗</span></div><b>자극성</b></div>
+<div class="ghs"><div class="diamond"><span>🫁</span></div><b>건강유해성</b></div>
+</div>
+<div class="help">※ 실제 서비스에서는 공식 MSDS 2번 항목 기준으로 생성</div>
+<button onclick="window.print()">경고표지 출력</button>
+</div>
+
+<div class="card">
+<h3>3) 핵심 관리요령</h3>
+<ul>
+<li>🔥 화기 근처 사용 금지</li>
+<li>🌬️ 충분히 환기</li>
+<li>🧤 보호장갑·보안경 착용</li>
+<li>👁️ 눈·피부 접촉 시 즉시 세척</li>
+<li>📦 고온·직사광선 피해서 보관</li>
+<li>🧯 화재·누출 시 MSDS 5·6번 조치 적용</li>
+<li>🗑️ 폐기 시 MSDS 13번 확인</li>
+</ul>
+<div class="actions">
+<button onclick="window.print()">관리요령 출력</button>
+<button onclick="makeQr()">QR 생성</button>
+</div>
+</div>
+
+<div id="qrCard" class="card hidden">
+<h3>4) QR 생성 결과</h3>
+<div id="qrbox">
+<div id="qrcode"></div>
+<div>
+<b>QR 스캔 시 표시</b>
+<ul>
+<li>제품명</li>
+<li>주요 위험성</li>
+<li>경고표지</li>
+<li>보호구</li>
+<li>취급·보관방법</li>
+<li>응급조치</li>
+<li>전체 MSDS 16개 항목 보기</li>
+<li>공식 MSDS PDF 보기</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div class="card">
+<h3>5) 소분용기 관리</h3>
+<select onchange="document.getElementById('decantBox').classList.toggle('hidden',this.value!=='yes')">
+<option value="no">소분 사용 안 함</option>
+<option value="yes">소분해서 사용함</option>
+</select>
+<div id="decantBox" class="hidden">
+<p>소분용기 경고표지 생성 대상입니다.</p>
+<button onclick="alert('소분용기 경고표지 생성 샘플')">소분용기 경고표지 생성</button>
+</div>
+</div>
+
+<div class="card">
+<h3>6) 교육자료 자동 생성</h3>
+<p>공식 MSDS를 바탕으로 현업근로자용 1페이지 교육자료와 교육등록부를 생성합니다.</p>
+
+<div class="grid">
+<div>
+<label>교육일자</label>
+<input type="date" id="eduDate">
+</div>
+<div>
+<label>교육자</label>
+<input type="text" id="eduTrainer" placeholder="교육자명">
+</div>
+</div>
+
+<div class="grid">
+<div>
+<label>교육대상</label>
+<input type="text" id="eduTarget" placeholder="예: 시설관리 담당자">
+</div>
+<div>
+<label>교육장소</label>
+<input type="text" id="eduPlace" placeholder="예: 행정실 회의공간">
+</div>
+</div>
+
+<div class="actions">
+<button onclick="previewEducation()">교육자료 미리보기</button>
+<button onclick="downloadEducationRegister()">교육등록부 다운로드</button>
+<button class="secondary" onclick="downloadEducationText()">교육자료 다운로드</button>
+</div>
+
+<div id="eduPreview" class="card hidden" style="background:#fafafa">
+<h4>교육자료 미리보기</h4>
+<p><b>제품명:</b> 3M #77 스프레이 접착제</p>
+<ul>
+<li>주요 위험: 인화성, 증기 흡입 주의</li>
+<li>보호구: 보호장갑, 보안경</li>
+<li>작업 전: 환기상태 확인</li>
+<li>금지사항: 화기 근처 사용 금지</li>
+<li>보관: 고온·직사광선 피하기</li>
+<li>응급조치: 눈·피부 접촉 시 충분한 물로 세척</li>
+</ul>
+</div>
+</div>
+
+<div class="card">
+<h3>7) 대체제품 검토</h3>
+<p>고위험·규제물질이 확인되면 친환경·저유해 제품으로 교체 검토를 안내합니다.</p>
+<button onclick="showAlternativeGuide()">대체제품 검토 안내</button>
+<div id="alternativeGuide" class="card hidden" style="background:#fafafa">
+<h4>대체제품 검토 안내</h4>
+<p>고위험·규제물질이 포함된 경우에는 동일한 작업 목적을 충족하면서 유해성이 낮은 제품으로 교체할 수 있는지 검토합니다.</p>
+<ul>
+<li>동일 용도의 친환경·저유해 제품 존재 여부 확인</li>
+<li>주요 유해성분과 CAS No. 비교</li>
+<li>인화성·흡입유해성·부식성 등 위험등급 비교</li>
+<li>대체제품의 공식 MSDS 확인</li>
+<li>가격·작업성뿐 아니라 근로자 노출 위험까지 함께 비교</li>
+</ul>
+<p class="help">※ 특정 함량 기준만으로 자동판정하지 않고, 관련 법령·공식 MSDS와 필요 시 전문가 확인을 거칩니다.</p>
+</div>
+</div>
+
+<div class="card">
+<h3>8) 법정 관리대상 자동 확인</h3>
+<p>공식 MSDS 원문의 <b>3번 구성성분·함유량</b>과 <b>15번 법적 규제현황</b>을 분석하여, 특수건강진단 및 작업환경측정 <b>대상물질 포함 여부</b>를 자동 확인합니다.</p>
+
+<div class="actions">
+<button onclick="analyzeLegalTargets()">법정 관리대상 확인</button>
+</div>
+
+<div id="legalTargetResult" class="card hidden" style="background:#fafafa">
+<h4>자동 확인 결과</h4>
+<table>
+<tr><th>주요성분</th><td>아세톤 등 (샘플)</td></tr>
+<tr><th>CAS No.</th><td>67-64-1 등 (샘플)</td></tr>
+<tr><th>함유량</th><td>공식 MSDS 3번 항목 기준 추출</td></tr>
+<tr><th>MSDS 15번 규제정보</th><td>관련 규제정보 자동 추출</td></tr>
+<tr><th>작업환경측정 대상물질</th><td><span class="badge warn">대상물질 포함 여부 확인</span></td></tr>
+<tr><th>특수건강진단 대상물질</th><td><span class="badge warn">대상물질 포함 여부 확인</span></td></tr>
+</table>
+
+<div class="status">
+<b>판단 안내:</b> 시스템은 공식 MSDS의 성분명·CAS No.·함유량·규제정보를 관련 대상물질 기준과 대조하여 1차 판단합니다.
+실제 실시 여부는 작업조건·노출수준 등 추가 확인이 필요한 경우 <b>전문가 확인 필요</b>로 안내합니다.
+</div>
+
+<div class="actions">
+<button class="secondary" onclick="showExpertMessage()">전문가 문의 문구 보기</button>
+</div>
+</div>
+
+<div id="expertMessageBox" class="card hidden" style="background:#fafafa">
+<h4>전문가 문의 문구</h4>
+<textarea id="expertMessage" rows="5">공식 MSDS의 3번 구성성분·함유량 및 15번 법적 규제정보를 분석한 결과, 특수건강진단 또는 작업환경측정 대상물질 포함 가능성이 확인되었습니다. 실제 작업조건을 기준으로 실시 대상 여부 확인을 요청드립니다.</textarea>
+<div class="actions">
+<button onclick="copyExpertMessage()">문의 문구 복사</button>
+</div>
+</div>
+</div>
+
+<div class="actions">
+<button onclick="showStage(4)">다음: 완료·이력관리</button>
+<button class="secondary" onclick="showStage(2)">이전</button>
+</div>
+</section>
+
+<section id="stage4" class="hidden">
+<h2>④ 완료·이력관리</h2>
+
+<div class="card">
+<h3>이행상태</h3>
+<ul>
+<li>☑ 공식 MSDS 확인</li>
+<li>☑ 관리대장 반영</li>
+<li>☐ 경고표지·관리요령 게시</li>
+<li>☐ QR 부착</li>
+<li>☐ 교육 필요 여부 확인</li>
+</ul>
+<div class="status"><b>현재 상태:</b> 진행 중 / <b>다음 할 일:</b> 경고표지·관리요령 게시</div>
+</div>
+
+<div class="card">
+<h3>MSDS 버전 이력</h3>
+<table>
+<tr><th>버전</th><th>일자</th><th>상태</th><th>연결 이력</th></tr>
+<tr><td>v2</td><td>2026-09-14</td><td>최신본</td><td>현재 게시자료·교육자료</td></tr>
+<tr><td>v1</td><td>2025-03-02</td><td>이전본</td><td>2025년 교육 당시 사용</td></tr>
+</table>
+<button class="warn" onclick="alert('새 MSDS 개정본이 확인되었습니다. 게시자료·교육자료 재검토가 필요합니다.')">개정본 알림 테스트</button>
+</div>
+
+<div class="card">
+<h3>사용종료·폐기 관리</h3>
+<select onchange="document.getElementById('disposeBox').classList.toggle('hidden',this.value!=='end')">
+<option value="use">사용 중</option>
+<option value="end">사용 종료/폐기 예정</option>
+</select>
+<div id="disposeBox" class="hidden">
+<ul>
+<li>잔량 확인</li>
+<li>MSDS 13번 항목 확인</li>
+<li>별도 폐기물 처리 대상 여부 확인</li>
+<li>폐기방법·처리일·처리자 기록</li>
+<li>기존 MSDS·관리이력은 삭제하지 않고 보존</li>
+</ul>
+<button onclick="alert('폐기 완료 기록 샘플')">폐기 완료</button>
+</div>
+</div>
+
+<div class="actions">
+<button class="success" onclick="completeAll()">관리 완료</button>
+<button class="secondary" onclick="showStage(3)">이전</button>
+</div>
+</section>
+
+
+<section id="finishScreen" class="hidden">
+<h2>✅ MSDS 관리 완료</h2>
+<div class="card">
+<h3>3M #77 스프레이 접착제 관리가 완료되었습니다.</h3>
+<p>필요한 관리조치와 이력 기록을 완료했습니다.</p>
+<table>
+<tr><th>제품 확인</th><td><span class="badge ok">완료</span></td></tr>
+<tr><th>공식 MSDS 확인</th><td><span class="badge ok">완료</span></td></tr>
+<tr><th>관리대장 반영</th><td><span class="badge ok">완료</span></td></tr>
+<tr><th>경고표지·관리요령</th><td><span class="badge ok">완료</span></td></tr>
+<tr><th>QR</th><td><span class="badge ok">완료</span></td></tr>
+<tr><th>교육 여부 확인</th><td><span class="badge ok">완료</span></td></tr>
+<tr><th>현재 MSDS 버전</th><td>2026-09-14 최신본 (샘플)</td></tr>
+</table>
+</div>
+<div class="card">
+<h3>다음 관리</h3>
+<ul>
+<li>새 MSDS 개정본이 확인되면 게시자료·교육자료 재검토</li>
+<li>사용 종료 시 MSDS 13번 항목에 따라 폐기 절차 확인</li>
+<li>정기적으로 보관상태와 현장 게시상태 확인</li>
+</ul>
+</div>
+<div class="actions">
+<button onclick="restartWorkflow()">다른 제품 확인하기</button>
+<button class="secondary" onclick="showStage(4)">이력 다시 보기</button>
+</div>
+</section>
+
+</main>
+
+<script>
+function updateStepper(n){
+ for(let i=1;i<=4;i++){
+   const el=document.getElementById('sp'+i);
+   el.className='step';
+   if(i<n) el.classList.add('done');
+   if(i===n) el.classList.add('active');
+ }
+}
+function showStage(n){
+ for(let i=1;i<=4;i++) document.getElementById('stage'+i).classList.toggle('hidden',i!==n);
+ updateStepper(n);
+ const texts={
+ 1:'확인 필요 / 제품 사진을 등록하고 AI로 식별하세요.',
+ 2:'확인 필요 / 제조사 공식 MSDS를 확인하세요.',
+ 3:'조치 필요 / 관리대장·경고표지·QR·교육자료와 법정 관리대상 여부를 확인하세요.',
+ 4:'진행 중 / 남은 현장조치와 이력을 확인하세요.'
+ };
+ document.getElementById('currentStatus').innerHTML='<b>현재 상태:</b> '+texts[n];
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+function showAll(){
+ for(let i=1;i<=4;i++) document.getElementById('stage'+i).classList.remove('hidden');
+ document.getElementById('currentStatus').innerHTML='<b>전체 보기:</b> ① 제품 확인 → ② 공식 MSDS 확인 → ③ 관리조치 → ④ 완료·이력관리';
+}
+function recognize(){
+ document.getElementById('productResult').classList.remove('hidden');
+ const badge=document.getElementById('lifeProductBadge');
+ const link=document.getElementById('lifeProductLink');
+ const next=document.getElementById('nextMsdsBtn');
+
+ // 샘플 3M #77은 생활화학제품이 아닌 흐름으로 표시
+ badge.className='badge ok';
+ badge.textContent='생활화학제품 아님';
+ link.classList.add('hidden');
+ next.classList.remove('hidden');
+
+ checkExistingDuplicate();
+ document.getElementById('currentStatus').innerHTML='<b>현재 상태:</b> 제품 확인 완료 / <b>다음 할 일:</b> 기존 대장 중복 여부를 참고한 뒤 공식 MSDS를 확인하세요.';
+}
+function openLifeSafety(){
+ const box=document.getElementById('lifeBox');
+ if(box){
+   box.classList.remove('hidden');
+   box.scrollIntoView({behavior:'smooth',block:'start'});
+ }
+ document.getElementById('currentStatus').innerHTML='<b>현재 상태:</b> 생활화학제품 안전관리 / <b>다음 할 일:</b> 취급요령을 확인하세요.';
+}
+function demoLifeProduct(){
+ const badge=document.getElementById('lifeProductBadge');
+ const link=document.getElementById('lifeProductLink');
+ const next=document.getElementById('nextMsdsBtn');
+ badge.className='badge ok';
+ badge.textContent='생활화학제품임';
+ link.classList.remove('hidden');
+ next.classList.add('hidden');
+}
+function makeQr(){
+ document.getElementById('qrCard').classList.remove('hidden');
+ const q=document.getElementById('qrcode'); q.innerHTML='';
+ if(typeof QRCode!=='undefined'){
+   new QRCode(q,{text:'https://example.org/msds/3m-77',width:150,height:150});
+ }else{
+   q.innerHTML='<div style="padding:25px;border:1px dashed #999">QR 생성 라이브러리 연결 필요</div>';
+ }
+ document.getElementById('qrCard').scrollIntoView({behavior:'smooth'});
+}
+function completeAll(){
+ const row=document.getElementById('ledger-row-1');
+ if(row){ row.children[7].innerHTML='<span class="badge ok">완료</span>'; }
+ for(let i=1;i<=4;i++){
+   const sec=document.getElementById('stage'+i);
+   if(sec) sec.classList.add('hidden');
+ }
+ const finish=document.getElementById('finishScreen');
+ finish.classList.remove('hidden');
+ document.getElementById('currentStatus').innerHTML='<b>현재 상태:</b> 완료 / <b>다음 할 일:</b> 없음';
+ for(let i=1;i<=4;i++){
+   const el=document.getElementById('sp'+i);
+   if(el) el.className='step done';
+ }
+ finish.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function restartWorkflow(){
+ document.getElementById('finishScreen').classList.add('hidden');
+ showStage(1);
+}
+
+function downloadLedgerCsv(){
+ const table=document.getElementById('ledgerTable');
+ const rows=[...table.querySelectorAll('tr')].map(tr=>[...tr.children].map(cell=>cell.innerText.trim()));
+ const csv='\ufeff'+rows.map(r=>r.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(',')).join('\n');
+ const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+ const a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);
+ a.download='유해물질_관리대장.csv';
+ a.click();
+ URL.revokeObjectURL(a.href);
+}
+
+function previewEducation(){
+ const box=document.getElementById('eduPreview');
+ box.classList.remove('hidden');
+ box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function downloadEducationRegister(){
+ const date=document.getElementById('eduDate')?.value || '';
+ const trainer=document.getElementById('eduTrainer')?.value || '';
+ const target=document.getElementById('eduTarget')?.value || '';
+ const place=document.getElementById('eduPlace')?.value || '';
+ const rows=[
+  ['교육일자','교육대상','교육자','교육장소','제품명','교육내용','참석자 확인'],
+  [date,target,trainer,place,'3M #77 스프레이 접착제','유해위험성·보호구·취급방법·응급조치','']
+ ];
+ const csv='\ufeff'+rows.map(r=>r.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(',')).join('\n');
+ const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+ const a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);
+ a.download='MSDS_교육등록부.csv';
+ a.click();
+ URL.revokeObjectURL(a.href);
+}
+function downloadEducationText(){
+ const text=`[MSDS 교육자료]
+제품명: 3M #77 스프레이 접착제
+주요 위험: 인화성, 증기 흡입 주의
+보호구: 보호장갑, 보안경
+작업 전: 환기상태 확인
+금지사항: 화기 근처 사용 금지
+보관: 고온·직사광선 피하기
+응급조치: 눈·피부 접촉 시 충분한 물로 세척`;
+ const blob=new Blob([text],{type:'text/plain;charset=utf-8'});
+ const a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);
+ a.download='MSDS_교육자료.txt';
+ a.click();
+ URL.revokeObjectURL(a.href);
+}
+
+
+
+
+
+
+function openKoshaWithKey(){
+  const msg='안전보건공단 화학물질정보에서 다음 값으로 확인하세요.\\n\\n물질명: 아세톤\\nCAS No.: 67-64-1\\n\\nUN No.는 공식 MSDS 14번 운송정보에서 확인합니다.';
+  alert(msg);
+  window.open('https://msds.kosha.or.kr/MSDSInfo/','_blank');
+}
+
+
+function applyLedger(){
+ const dept=document.getElementById('deptSelect')?.value || '-';
+ const place=document.getElementById('placeSelect')?.value || '-';
+ const body=document.getElementById('ledgerBody');
+ const box=document.getElementById('ledgerResult');
+ if(!document.getElementById('ledger-row-1')){
+   const tr=document.createElement('tr');
+   tr.id='ledger-row-1';
+   tr.innerHTML=`<td>1</td><td>3M #77 스프레이 접착제</td><td>한국쓰리엠</td><td>아세톤 67-64-1 등 (샘플)</td><td>${dept}</td><td>${place}</td><td><span class="badge ok">공식 MSDS 확인</span></td><td><span class="badge warn">진행 중</span></td>`;
+   body.appendChild(tr);
+ }else{
+   const cells=document.getElementById('ledger-row-1').children;
+   cells[4].textContent=dept;
+   cells[5].textContent=place;
+ }
+ box.classList.remove('hidden');
+ box.scrollIntoView({behavior:'smooth',block:'nearest'});
+ document.getElementById('currentStatus').innerHTML='<b>현재 상태:</b> 진행 중 / <b>다음 할 일:</b> 경고표지·관리요령·QR·교육 여부를 확인하세요.';
+}
+
+function showAlternativeGuide(){
+ const box=document.getElementById('alternativeGuide');
+ box.classList.remove('hidden');
+ box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function analyzeLegalTargets(){
+  const box=document.getElementById('legalTargetResult');
+  box.classList.remove('hidden');
+  box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function showExpertMessage(){
+ const box=document.getElementById('expertMessageBox');
+ box.classList.remove('hidden');
+ box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function copyExpertMessage(){
+ const ta=document.getElementById('expertMessage');
+ ta.select();
+ ta.setSelectionRange(0,99999);
+ if(navigator.clipboard && window.isSecureContext){
+   navigator.clipboard.writeText(ta.value).then(()=>alert('문의 문구를 복사했습니다.'));
+ }else{
+   document.execCommand('copy');
+   alert('문의 문구를 복사했습니다.');
+ }
+}
+
+
+
+
+
+
+let legacyReferenceRows=[];
+let matchedLegacy=null;
+
+async function loadLegacyReference(){
+  const input=document.getElementById('legacyLedgerFile');
+  const file=input.files && input.files[0] ? input.files[0] : null;
+
+  if(!file){
+    legacyReferenceRows=[
+      {no:1,product:'3M #77 스프레이 접착제',maker:'한국쓰리엠',cas:'아세톤 67-64-1 등',currentMsds:'2025-03-02',revisionDate:'2026-01-15',revisionStatus:'개정본 있음',revisionSummary:'유해성·위험성 및 취급·보관 정보 재확인 필요',dept:'행정실/시설관리',place:'시설관리실',useStatus:'사용 중'},
+      {no:2,product:'다목적 세정제 A',maker:'한빛케미칼',cas:'-',currentMsds:'2025-08-10',revisionDate:'-',revisionStatus:'최신본 유지',revisionSummary:'확인된 개정사항 없음',dept:'행정실/시설관리',place:'청소용품실',useStatus:'대체 완료'},
+      {no:3,product:'에탄올 소독제',maker:'대한위생',cas:'에탄올 64-17-5',currentMsds:'2024-11-20',revisionDate:'확인 필요',revisionStatus:'확인 필요',revisionSummary:'제조사 최신 MSDS 확인 필요',dept:'보건실',place:'보건실 약품장',useStatus:'확인 필요'},
+      {no:4,product:'실리콘 실란트',maker:'케이실리콘',cas:'혼합물',currentMsds:'2026-02-03',revisionDate:'-',revisionStatus:'최신본 유지',revisionSummary:'확인된 개정사항 없음',dept:'행정실/시설관리',place:'시설관리실',useStatus:'사용 중'},
+      {no:5,product:'페인트 희석제',maker:'대한페인트',cas:'혼합물',currentMsds:'2024-05-18',revisionDate:'2026-07-01',revisionStatus:'개정본 있음',revisionSummary:'주요성분·보호구·폐기정보 재확인 필요',dept:'행정실/시설관리',place:'위험물 보관함',useStatus:'폐기/중단'}
+    ];
+    applySavedLegacyStatuses();
+    renderLegacyReference(legacyReferenceRows);
+    document.getElementById('legacyReferenceBox').classList.remove('hidden');
+    document.getElementById('legacyReferenceCount').innerHTML='<b>샘플 기존 대장 5건을 불러왔습니다.</b> 실제 파일을 선택하면 해당 파일 내용으로 표시됩니다.';
+    document.getElementById('legacyReferenceBox').scrollIntoView({behavior:'smooth',block:'start'});
+    return;
+  }
+
+  const ext=file.name.split('.').pop().toLowerCase();
+
+  try{
+    let rows=[];
+
+    if(ext==='csv'){
+      const text=await file.text();
+      rows=parseCsvToObjects(text);
+    }else if(ext==='xlsx' || ext==='xls'){
+      if(typeof XLSX==='undefined'){
+        alert('엑셀 파일 읽기 기능을 불러오지 못했습니다. 인터넷 연결을 확인하거나 CSV 파일로 저장해 다시 시도하세요.');
+        return;
+      }
+      const buf=await file.arrayBuffer();
+      const wb=XLSX.read(buf,{type:'array'});
+      rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+    }else{
+      alert('CSV, XLSX, XLS 파일만 사용할 수 있습니다.');
+      return;
+    }
+
+    legacyReferenceRows=rows.map((r,idx)=>({
+      no:idx+1,
+      product:(r['제품명'] ?? r['제품'] ?? r['화학제품명'] ?? '').toString().trim(),
+      maker:(r['제조사'] ?? r['공급업체'] ?? r['제조업체'] ?? '').toString().trim(),
+      cas:(r['주요성분/CAS No.'] ?? r['주요성분/CAS'] ?? r['CAS No.'] ?? r['CAS'] ?? '').toString().trim(),
+      currentMsds:(r['현재 MSDS'] ?? r['MSDS 일자'] ?? r['MSDS 개정일'] ?? '').toString().trim(),
+      revisionDate:(r['개정이력'] ?? r['최신 개정일'] ?? '').toString().trim(),
+      revisionStatus:(r['개정상태'] ?? '').toString().trim() || '확인 필요',
+      revisionSummary:(r['개정내용'] ?? r['변경내용'] ?? '').toString().trim() || '최신 공식 MSDS 확인 필요',
+      dept:(r['사용부서'] ?? r['부서'] ?? '').toString().trim(),
+      place:(r['보관장소'] ?? r['보관 위치'] ?? '').toString().trim(),
+      useStatus:(r['현재 상태'] ?? r['상태'] ?? r['사용상태'] ?? '').toString().trim() || '확인 필요'
+    })).filter(r=>r.product || r.maker);
+
+    if(!legacyReferenceRows.length){
+      alert('제품명 또는 제조사 정보를 찾지 못했습니다. 파일의 헤더명을 확인하세요.');
+      return;
+    }
+
+    applySavedLegacyStatuses();
+    renderLegacyReference(legacyReferenceRows);
+    document.getElementById('legacyReferenceBox').classList.remove('hidden');
+    document.getElementById('legacyReferenceCount').innerHTML='<b>'+escapeHtml(file.name)+'</b> · '+legacyReferenceRows.length+'건 불러옴';
+    document.getElementById('legacyReferenceBox').scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){
+    console.error(e);
+    alert('파일을 읽지 못했습니다. 파일 형식과 헤더명을 확인하세요.');
+  }
+}
+
+function parseCsvToObjects(text){
+  text=text.replace(/^\uFEFF/,'');
+  const rows=[];
+  let row=[], cell='', quote=false;
+
+  for(let i=0;i<text.length;i++){
+    const ch=text[i];
+    if(ch==='"'){
+      if(quote && text[i+1]==='"'){
+        cell+='"'; i++;
+      }else{
+        quote=!quote;
+      }
+    }else if(ch===',' && !quote){
+      row.push(cell); cell='';
+    }else if((ch==='\n' || ch==='\r') && !quote){
+      if(ch==='\r' && text[i+1]==='\n') i++;
+      row.push(cell); cell='';
+      if(row.some(v=>String(v).trim()!=='')) rows.push(row);
+      row=[];
+    }else{
+      cell+=ch;
+    }
+  }
+
+  if(cell!=='' || row.length){
+    row.push(cell);
+    if(row.some(v=>String(v).trim()!=='')) rows.push(row);
+  }
+
+  if(rows.length<2) return [];
+
+  const headers=rows[0].map(h=>String(h).trim());
+  return rows.slice(1).map(cols=>{
+    const obj={};
+    headers.forEach((h,idx)=>obj[h]=(cols[idx] ?? '').trim());
+    return obj;
+  });
+}
+
+function renderLegacyReference(rows){
+  const body=document.getElementById('legacyReferenceBody');
+  body.innerHTML='';
+
+  rows.forEach(r=>{
+    let statusClass='ok';
+    if(r.revisionStatus==='개정본 있음' || r.revisionStatus==='확인 필요') statusClass='warn';
+
+    const revisionText = r.revisionStatus==='개정본 있음'
+      ? `${escapeHtml(r.currentMsds||'-')} → ${escapeHtml(r.revisionDate||'-')}`
+      : (r.revisionStatus==='최신본 유지' ? '변경 없음' : escapeHtml(r.revisionDate||'확인 필요'));
+
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td>${r.no}</td>
+      <td>${escapeHtml(r.product||'-')}</td>
+      <td>${escapeHtml(r.maker||'-')}</td>
+      <td>${escapeHtml(r.cas||'-')}</td>
+      <td>${escapeHtml(r.currentMsds||'확인 필요')}</td>
+      <td>
+        <span class="badge ${statusClass}">${escapeHtml(r.revisionStatus||'확인 필요')}</span>
+        <div class="help" style="margin-top:6px">${revisionText}</div>
+        <button class="secondary" style="width:auto;margin-top:8px" onclick="showRevisionDetail(${r.no})">개정내용 보기</button>
+      </td>
+      <td>${escapeHtml(r.dept||'-')}</td>
+      <td>${escapeHtml(r.place||'-')}</td>
+      <td>
+        <select onchange="updateUseStatus(${r.no}, this.value)" style="min-width:110px">
+          <option value="사용 중" ${r.useStatus==='사용 중'?'selected':''}>사용 중</option>
+          <option value="폐기/중단" ${r.useStatus==='폐기/중단'?'selected':''}>폐기/중단</option>
+          <option value="대체 완료" ${r.useStatus==='대체 완료'?'selected':''}>대체 완료</option>
+          <option value="확인 필요" ${r.useStatus==='확인 필요'?'selected':''}>확인 필요</option>
+        </select>
+      </td>
+      <td>
+        ${
+          (r.useStatus==='사용 중' || r.useStatus==='확인 필요')
+          ? `<button style="width:auto" onclick="bringLegacyToNew(${r.no})">신규 관리</button>`
+          : `<span class="help">신규 관리 불필요</span>`
+        }
+      </td>
+    `;
+    body.appendChild(tr);
+  });
+
+  document.getElementById('legacyReferenceCount').textContent=`현재 ${rows.length}건 표시`;
+}
+
+function filterLegacyReference(){
+  const q=(document.getElementById('legacySearch')?.value||'').trim().toLowerCase();
+  let rows=legacyReferenceRows;
+  if(currentLegacyStatusFilter!=='전체'){
+    rows=rows.filter(r=>(r.useStatus||'확인 필요')===currentLegacyStatusFilter);
+  }
+  if(q){
+    rows=rows.filter(r=>
+      [r.product,r.maker,r.cas,r.dept,r.place,r.currentMsds,r.revisionStatus,r.useStatus]
+      .some(v=>(v||'').toLowerCase().includes(q))
+    );
+  }
+  renderLegacyReference(rows);
+}
+
+
+
+
+
+
+function applySavedLegacyStatuses(){
+  legacyReferenceRows.forEach(r=>{
+    try{
+      const saved=localStorage.getItem('legacyStatus_'+(r.product||r.no));
+      if(saved) r.useStatus=saved;
+    }catch(e){}
+  });
+}
+
+let currentLegacyStatusFilter='전체';
+
+function filterByStatus(status){
+  currentLegacyStatusFilter=status;
+  const q=(document.getElementById('legacySearch')?.value||'').trim().toLowerCase();
+  let rows=legacyReferenceRows;
+
+  if(status!=='전체'){
+    rows=rows.filter(r=>(r.useStatus||'확인 필요')===status);
+  }
+  if(q){
+    rows=rows.filter(r=>
+      [r.product,r.maker,r.cas,r.dept,r.place,r.currentMsds,r.revisionStatus,r.useStatus]
+      .some(v=>(v||'').toLowerCase().includes(q))
+    );
+  }
+  renderLegacyReference(rows);
+}
+
+function updateUseStatus(no,status){
+  const row=legacyReferenceRows.find(r=>r.no===no);
+  if(!row) return;
+  row.useStatus=status;
+  try{
+    localStorage.setItem('legacyStatus_'+(row.product||no),status);
+  }catch(e){}
+  if(currentLegacyStatusFilter!=='전체' && status!==currentLegacyStatusFilter){
+    filterByStatus(currentLegacyStatusFilter);
+  }
+}
+
+function showRevisionDetail(no){
+  const r=legacyReferenceRows.find(x=>x.no===no);
+  if(!r) return;
+
+  document.getElementById('revProduct').textContent=r.product||'-';
+  document.getElementById('revCurrent').textContent=r.currentMsds||'확인 필요';
+  document.getElementById('revDate').textContent=r.revisionDate||'확인 필요';
+  document.getElementById('revStatus').innerHTML=
+    '<span class="badge '+((r.revisionStatus==='개정본 있음'||r.revisionStatus==='확인 필요')?'warn':'ok')+'">'+
+    escapeHtml(r.revisionStatus||'확인 필요')+'</span>';
+  document.getElementById('revSummary').textContent=r.revisionSummary||'최신 공식 MSDS 확인 필요';
+
+  const panel=document.getElementById('revisionDetailPanel');
+  panel.classList.remove('hidden');
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function bringLegacyToNew(no){
+  matchedLegacy=legacyReferenceRows.find(r=>r.no===no) || null;
+  document.getElementById('existingLedgerSection').classList.add('hidden');
+  document.getElementById('workflowHeader').classList.remove('hidden');
+  showStage(1);
+
+  const box=document.getElementById('duplicateCheckBox');
+  const text=document.getElementById('duplicateCheckText');
+  const actions=document.getElementById('duplicateActions');
+
+  if(matchedLegacy){
+    box.classList.remove('hidden');
+    actions.classList.remove('hidden');
+    text.innerHTML=`<b>${escapeHtml(matchedLegacy.product)}</b> 제품을 신규 관리 대상으로 선택했습니다.<br>
+    제조사: ${escapeHtml(matchedLegacy.maker||'-')} / 사용부서: ${escapeHtml(matchedLegacy.dept||'-')} / 보관장소: ${escapeHtml(matchedLegacy.place||'-')}<br>
+    <span class="help">기존 제품정보와 MSDS 이력을 참고해 최신 공식 MSDS 확인부터 새 관리 절차를 시작합니다.</span>`;
+  }
+}
+
+function checkExistingDuplicate(){
+  const box=document.getElementById('duplicateCheckBox');
+  const text=document.getElementById('duplicateCheckText');
+
+  box.classList.remove('hidden');
+
+  if(!legacyReferenceRows.length){
+    matchedLegacy=null;
+    text.innerHTML='<b>참고용 기존 관리대장이 없습니다.</b><br>공식 MSDS 확인으로 계속 진행합니다.';
+    return;
+  }
+
+  // 샘플 제품명/제조사 기준으로 동일·유사 제품 확인
+  matchedLegacy=legacyReferenceRows.find(r=>
+    (r.product||'').toLowerCase().includes('3m') && (r.product||'').includes('77')
+  ) || legacyReferenceRows.find(r=>(r.maker||'').includes('쓰리엠'));
+
+  if(matchedLegacy){
+    text.innerHTML=
+      '<b>기존 관리대장에 동일·유사 제품이 있습니다.</b><br>'+
+      escapeHtml(matchedLegacy.product||'-')+' / '+
+      escapeHtml(matchedLegacy.maker||'-')+' / '+
+      escapeHtml(matchedLegacy.dept||'-')+' / '+
+      escapeHtml(matchedLegacy.place||'-')+
+      '<br><span class="help">기존 정보는 참고만 하고, 최신 공식 MSDS 확인으로 계속 진행합니다.</span>';
+  }else{
+    text.innerHTML='<b>기존 관리대장에 동일·유사 제품이 없습니다.</b><br>공식 MSDS 확인으로 계속 진행합니다.';
+  }
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g,m=>({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+  }[m]));
+}
+
+function startNewProduct(){
+  document.getElementById('homeScreen').classList.add('hidden');
+  document.getElementById('existingLedgerSection').classList.add('hidden');
+  document.getElementById('workflowHeader').classList.remove('hidden');
+  showStage(1);
+}
+
+function startExistingLedger(){
+  document.getElementById('homeScreen').classList.add('hidden');
+  document.getElementById('workflowHeader').classList.add('hidden');
+  for(let i=1;i<=4;i++){
+    const s=document.getElementById('stage'+i);
+    if(s) s.classList.add('hidden');
+  }
+  document.getElementById('existingLedgerSection').classList.remove('hidden');
+}
+
+function backHome(){
+  document.getElementById('existingLedgerSection').classList.add('hidden');
+  document.getElementById('workflowHeader').classList.add('hidden');
+  for(let i=1;i<=4;i++){
+    const s=document.getElementById('stage'+i);
+    if(s) s.classList.add('hidden');
+  }
+  document.getElementById('homeScreen').classList.remove('hidden');
+}
+
+
+
+backHome();
+</script>
+</body>
+</html>

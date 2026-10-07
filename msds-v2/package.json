@@ -1,0 +1,16 @@
+{
+  "name": "school-msds-ai-app-v2",
+  "version": "2.0.0",
+  "description": "학교 산업안전보건 MSDS 스마트 관리시스템 V2 - 원문 근거와 검증을 강화한 독립 버전",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "busboy": "^1.6.0"
+  },
+  "keywords": ["MSDS", "Gemini", "Safety", "School"],
+  "author": "Antigravity AI",
+  "license": "ISC"
+}

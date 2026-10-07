@@ -1,0 +1,130 @@
+  <!-- Duplicate Ledger Check -->
+  <div id="duplicateCheckBox" class="card warning-box hidden">
+    <h4>📋 기존 관리대장 중복 대조 결과</h4>
+    <div id="duplicateCheckText">기존 관리대장에서 동일·유사 제품 검색 진행 중...</div>
+  </div>
+
+  <!-- AI Recognition Results -->
+  <div id="productResult" class="card hidden">
+    <h3>🤖 Gemini AI 제품 식별 결과</h3>
+    <table>
+      <tr><th>제품명</th><td id="resProductName">-</td></tr>
+      <tr><th>제조사 / 수입자</th><td id="resManufacturer">-</td></tr>
+      <tr><th>용도</th><td id="resUse">-</td></tr>
+      <tr><th>품번 / 바코드</th><td id="resProductNo">-</td></tr>
+      <tr><th>신고/승인번호</th><td id="resRegNo">-</td></tr>
+      <tr><th>식별 신뢰도</th><td><span id="resConfidenceBadge" class="badge ok">0%</span></td></tr>
+      <tr><th>확인이 필요한 항목</th><td id="resUncertainFields" style="color:#d32f2f;">없음</td></tr>
+      <tr>
+        <th>생활화학제품 여부</th>
+        <td>
+          <span id="lifeProductBadge" class="badge warn">확인 중</span>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Household Chemical Unconfirmed Notice Box (Workflow C) -->
+    <div id="lifeUnconfirmedBox" class="card warning-box hidden">
+      <h4>⚠️ 생활화학제품 여부 공식 확인 필요</h4>
+      <p style="color:#c92a2a; font-weight:bold; font-size:0.95rem; margin-top:6px;">
+        "생활화학제품 여부를 공식 정보로 확인하지 못했습니다.<br>
+        신고번호 또는 제품정보를 다시 확인하세요."
+      </p>
+      <div class="actions" style="margin-top:10px;">
+        <button type="button" class="primary" onclick="openRecheckPhotos()">제품정보 다시 확인</button>
+        <button type="button" class="secondary" onclick="openManualEditBox()">직접 입력</button>
+        <button type="button" class="secondary" onclick="queryOfficialRegNo()">공식정보 다시 조회</button>
+      </div>
+    </div>
+
+    <!-- Low Confidence / Manual Edit Form -->
+    <div id="manualEditBox" class="card warning-box hidden">
+      <h4>⚠️ 신뢰도가 낮거나 보이지 않는 정보가 있습니다.</h4>
+      <p class="help">"사진을 다시 촬영하거나 아래 항목을 직접 입력/수정하세요."</p>
+      <div class="grid">
+        <div><label>제품명</label><input type="text" id="editProductName"></div>
+        <div><label>제조사</label><input type="text" id="editManufacturer"></div>
+        <div><label>신고/승인번호 (예: CB21-13-0001)</label><input type="text" id="editRegNo"></div>
+        <div><label>용도</label><input type="text" id="editUse"></div>
+      </div>
+      <div class="actions">
+        <button onclick="applyManualEdit()">수정 내용 적용</button>
+      </div>
+    </div>
+
+    <!-- Dynamic Actions for Workflow A vs Workflow B -->
+    <div id="lifeGuideButtons" class="actions hidden">
+      <button class="primary" onclick="openLifeSafety()">안전관리 가이드 보기</button>
+      <button class="success" onclick="completeLifeSafety()">관리 완료</button>
+    </div>
+
+    <div id="nextMsdsActionBox" class="actions">
+      <button id="nextMsdsBtn" class="success" onclick="showStage(2)">다음: ② 공식 MSDS 확인으로 이동</button>
+    </div>
+  </div>
+
+  <!-- Household Chemical Safety Guide Box (Workflow A) -->
+  <div id="lifeBox" class="card hidden" style="border-left: 5px solid #1971c2;">
+    <h3>🏠 생활화학제품 안전관리 가이드</h3>
+    
+    <div class="status" style="background:#e7f5ff; border-left-color:#1971c2; color:#1864ab; margin-bottom:14px; font-size:0.9rem;">
+      <b>안내:</b> "생활화학제품으로 공식 확인되었습니다.<br>이 제품은 MSDS 관리 대신 생활화학제품 안전관리 기준에 따라 관리합니다."
+    </div>
+
+    <table>
+      <tr><th>제품명</th><td id="resLifeProdName">-</td></tr>
+      <tr><th>제조사</th><td id="resLifeMaker">-</td></tr>
+      <tr><th>신고/승인번호</th><td><b id="resLifeRegNo" style="color:#1971c2;">-</b></td></tr>
+      <tr><th>용도</th><td id="resLifeUse">-</td></tr>
+      <tr><th>사용 시 주의사항</th><td>화기 근처 사용 금지, 용도 외 임의 사용 금지</td></tr>
+      <tr><th>환기 필요 여부</th><td><b>필수</b> (작업 시 창문을 열어 충분히 환기)</td></tr>
+      <tr><th>다른 제품과 혼합 금지 여부</th><td><b>금지</b> (타 세정제나 화학제품과 임의 혼합 절대 금지)</td></tr>
+      <tr><th>피부·눈 접촉 주의</th><td>보호장갑 및 보안경 착용, 피부·눈 직접 접촉 주의</td></tr>
+      <tr><th>보관방법</th><td>어린이 손이 닿지 않고 직사광선이 없는 서늘한 곳 보관</td></tr>
+      <tr><th>응급조치</th><td>눈이나 피부 접촉 시 즉시 흐르는 물로 15분 이상 세척 후 의사 진료</td></tr>
+      <tr><th>제품 표시사항 확인</th><td><span class="badge ok">표시사항 및 안전기준 적정</span></td></tr>
+      <tr><th>신고·승인정보 확인 결과</th><td><span class="badge ok">화학제품안전법 공식 확인 완료</span></td></tr>
+    </table>
+
+    <div class="actions" style="margin-top:16px;">
+      <button onclick="downloadLifeSafetyGuide()">생활화학제품 취급요령 다운로드</button>
+      <button class="success" onclick="completeLifeSafety()">관리 완료</button>
+    </div>
+  </div>
+</section>
+
+<!-- Final Completion Screen for Household Chemical Products (Workflow A Finish) -->
+<section id="lifeFinishScreen" class="hidden">
+  <h2>✅ 생활화학제품 안전관리 완료</h2>
+  <div class="card" style="border-left:5px solid var(--success);">
+    <h3 style="margin-top:0; color:#2b8a3e;">[생활화학제품 안전관리 완료]</h3>
+    
+    <table style="margin-top:14px;">
+      <tr><th>제품명</th><td id="lifeFinProdName" style="font-weight:bold; font-size:1.05rem;">-</td></tr>
+      <tr><th>신고/승인번호</th><td id="lifeFinRegNo" style="color:#1971c2; font-weight:bold;">-</td></tr>
+      <tr><th>처리결과</th><td><span class="badge ok">생활화학제품 안전관리 완료</span></td></tr>
+    </table>
+
+    <h4 style="margin-top:18px; margin-bottom:8px;">확인사항:</h4>
+    <ul style="list-style:none; padding-left:0; line-height:1.8; margin-top:0; font-weight:500;">
+      <li>☑ 제품정보 확인</li>
+      <li>☑ 신고·승인정보 확인</li>
+      <li>☑ 사용 시 주의사항 확인</li>
+      <li>☑ 보관방법 확인</li>
+      <li>☑ 응급조치 확인</li>
+    </ul>
+  </div>
+
+  <div class="actions" style="margin-top:20px;">
+    <button onclick="restartWorkflow()">다른 제품 확인하기</button>
+    <button class="secondary" onclick="backHome()">처음으로</button>
+  </div>
+</section>
+
+<!-- Stage 2: Official MSDS Verification -->
+<section id="stage2" class="hidden">
+  <h2>② 공식 MSDS 확인</h2>
+  <div class="status" style="background:#e7f5ff; border-left-color:#1971c2; color:#1864ab; font-size:0.95rem; font-weight:bold; margin-bottom:16px;">
+    제품명과 제조사 정보를 이용해 공식 MSDS를 먼저 자동으로 확인합니다.
+  </div>
+

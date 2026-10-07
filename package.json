@@ -1,0 +1,13 @@
+{
+  "name": "school-msds-ai-app",
+  "version": "1.0.0",
+  "description": "학교 산업안전보건 MSDS·유해물질 스마트 관리시스템 (Gemini AI + 공공데이터 API 연동)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["MSDS", "Gemini", "Safety", "School"],
+  "author": "Antigravity AI",
+  "license": "ISC"
+}

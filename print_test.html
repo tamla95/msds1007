@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Print Test</title>
+</head>
+<body>
+  <button onclick="testPrint()">Test Print</button>
+  <script>
+    function openPrintPopup(htmlContent) {
+      const popup = window.open('', '_blank', 'width=850,height=900,scrollbars=yes');
+      if (!popup) {
+        alert('Blocked');
+        return;
+      }
+      const styles = Array.from(document.querySelectorAll('style')).map(s => s.outerHTML).join('\n');
+      popup.document.open();
+      popup.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>MSDS 인쇄</title>
+            ${styles}
+            <style>
+              body { background: #fff !important; color: #000 !important; padding: 20px; }
+            </style>
+          </head>
+          <body>
+            ${htmlContent}
+            <script>
+              window.onload = function() {
+                setTimeout(function() {
+                  window.print();
+                }, 500);
+              };
+            <\/script>
+          </body>
+        </html>
+      `);
+      popup.document.close();
+    }
+    
+    function testPrint() {
+      openPrintPopup('<h1>Hello Print!</h1>');
+    }
+  </script>
+</body>
+</html>
